@@ -1,50 +1,78 @@
 #include <iostream>
 #include <queue>
 #include <fstream>
+#include <vector>
+#include <sstream>
 
 using namespace std;
 
-void BFS(int nV, int nE, int S, vector<int> v[]) {
-    vector<bool> visited (nV + 1, false);
-
-    queue<int> q;
-    q.push(S);
-    visited[S] = true;
-
-    while (!q.empty()) {
-        int vertex = q.front();
-        q.pop();
-
-        cout << vertex << " ";
-
-        for (auto u : v[vertex]) {
-            if (!visited[u]) {
-                visited[u] = true;
-                q.push(u);
-            }
-        }
-    }
-}
-
-int main() {
-    int nV, nE, S;
-
+vector<vector<int>> readFileintoList(string fileName, int &src_vertex) {
     ifstream fpIN;
-    fpIN.open("data.txt");
-    fpIN >> nV >> nE >> S;
+    fpIN.open(fileName);
 
-    vector<int> v[nV + 1];
-    
-    for (int i = 0; i < nE; i++) {
-        int a, b;
-        fpIN >> a >> b;
-        v[a].push_back(b);
-        v[b].push_back(a);
+    if (!fpIN) {
+        cout << "File does not exits";
+        fpIN.close();
+        return {};
+    }
+
+    int n;
+    fpIN >> n >> src_vertex;
+    fpIN.ignore();
+
+    vector<vector<int>> list (n);
+
+    string line_info;
+    int cnt = 0;
+
+    while (getline(fpIN, line_info)) {
+        stringstream ss(line_info);
+
+        if (line_info == "")
+            break;
+
+        int vertex;
+        while (ss >> vertex) 
+            list[cnt].push_back(vertex);
+        
+        ++cnt;
     }
 
     fpIN.close();
 
-    BFS(nV, nE, S, v);
+    return list;
+}
 
+void BFS(vector<vector<int>> list, int src_vertex) {
+    vector<bool> visited (list.size(), false);
+
+    queue<int> q;
+    q.push(src_vertex);
+
+    while (!q.empty()) {
+        int a_vertex = q.front();
+        q.pop();
+
+        if (!visited[a_vertex]) {
+            cout << a_vertex << " ";
+
+            visited[a_vertex] = true;
+
+            for (int i = 0; i < list[a_vertex].size(); i++) 
+                if (!visited[list[a_vertex][i]]) 
+                    q.push(list[a_vertex][i]);
+        }
+    }
+
+    cout << "\n";
+}
+
+
+int main() {
+    int src_vertex;
+    vector<vector<int>> list = readFileintoList("data.txt", src_vertex);
+
+    BFS(list, src_vertex);
+    
     return 0;
 }
