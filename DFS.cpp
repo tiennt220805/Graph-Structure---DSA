@@ -1,51 +1,77 @@
 #include <iostream>
 #include <stack>
 #include <fstream>
+#include <sstream>
+#include <vector>
 
 using namespace std;
 
-void DFS(int nV, int nE, int S, vector<int> v[]) {
-    stack<int> st;
-    vector<bool> visited(nV + 1, false); 
+vector<vector<int>> readFileintoList(string fileName, int &src_vertex) {
+    ifstream fpIN;
+    fpIN.open(fileName);
 
-    st.push(S);
+    if (!fpIN) {
+        cout << "File does not exits";
+        fpIN.close();
+        return {};
+    }
+
+    int n;
+    fpIN >> n >> src_vertex;
+    fpIN.ignore();
+
+    vector<vector<int>> list (n);
+
+    string line_info;
+    int cnt = 0;
+
+    while (getline(fpIN, line_info)) {
+        stringstream ss(line_info);
+
+        if (line_info == "")
+            break;
+
+        int vertex;
+        while (ss >> vertex) 
+            list[cnt].push_back(vertex);
+        
+        ++cnt;
+    }
+
+    fpIN.close();
+
+    return list;
+}
+
+void DFS(vector<vector<int>> list, int src_vertex) {
+    vector<bool> visited (list.size(), false);
+
+    stack<int> st;
+    st.push(src_vertex);
 
     while (!st.empty()) {
         int a_vertex = st.top();
         st.pop();
 
         if (!visited[a_vertex]) {
-            cout << a_vertex << " ";
-        
             visited[a_vertex] = true;
 
-            for (auto u = v[a_vertex].rbegin(); u != v[a_vertex].rend(); ++u) {
-                if (!visited[*u])
-                    st.push(*u);
-            }
-        }       
+            cout << a_vertex << " ";
+
+            for (int i = list[a_vertex].size() - 1; i >= 0; i--) 
+                if (!visited[list[a_vertex][i]]) 
+                    st.push(list[a_vertex][i]);
+        }
     }
+
+    cout << "\n";
 }
 
 int main() {
-    int nV, nE, S;
-
-    ifstream fpIN;
-    fpIN.open("data.txt");
-    fpIN >> nV >> nE >> S;
-
-    vector<int> v[nV + 1];
+    int src_vertex = 0;
+    vector<vector<int>> list = readFileintoList("data.txt", src_vertex);
     
-    for (int i = 0; i < nE; i++) {
-        int a, b;
-        fpIN >> a >> b;
-        v[a].push_back(b);
-        v[b].push_back(a);
-    }
+    DFS(list, src_vertex);
 
-    fpIN.close();
-
-    DFS(nV, nE, S, v);
-    
     return 0;
 }
